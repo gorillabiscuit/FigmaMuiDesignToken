@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+.turbo/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.swp
+*.swo
+
+# Test outputs
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Mobile
+ios/Pods/
+android/.gradle/
+*.keystore
+
+# Personal — gitignored per CLAUDE.md §10
+.personal/
+
+# Claude Code per-user local settings (auto-generated; .claude/commands/ stays tracked)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+# Claude Code skill symlinks — restored by `npx skills experimental_install`
+# from skills-lock.json (the lock file IS tracked).
+.claude/skills/
+
+# Skills installed by `npx skills add` — restored from skills-lock.json,
+# same pattern as node_modules / package-lock.json. Lock file tracked,
+# resolved skill content not.
+.agents/
+
+# Husky
+.husky/_
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+.vercel
