@@ -28,9 +28,12 @@ When the world changes:
 
 | # | Title | Status | Date |
 |---|---|---|---|
-| 0000 | Architecture overview | Draft | `<date>` |
+| 0000 | [Architecture overview](./0000-architecture-overview.md) | Accepted | 2026-05-13 |
+| 0001 | [Plugin tooling — webpack + React + TypeScript](./0001-plugin-tooling.md) | Accepted | 2026-05-13 |
+| 0002 | [V1 has zero network access](./0002-network-access-none.md) | Accepted | 2026-05-13 |
+| 0003 | [Token parser interface — pluggable, MUI-first](./0003-token-parser-interface.md) | Accepted | 2026-05-13 |
 
-(More entries land as Phase 1 progresses. See `QUEUE.md` for pending decisions.)
+`QUEUE.md` is empty — the no-backend architecture (ADR-0000) vacates most stack-selection decisions. See that file for the rationale.
 
 ## Numbering
 

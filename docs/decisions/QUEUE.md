@@ -1,116 +1,26 @@
-# ADR Queue — pending stack-selection decisions
+# ADR Queue — pending decisions
 
-**This is Phase 1 work.** Walk through each entry below with the human, finalise as a real numbered ADR using `_template.md`, then commit. The order is roughly dependency order — earlier choices constrain later ones.
+This queue is **empty**.
 
-Each entry below has:
-- The decision to make
-- A strawman recommendation (the previous-session Claude's or your own preliminary view)
-- The alternatives that were considered and why they're not the recommendation
-- What might change the recommendation
+TokenCheck is a Figma plugin with no backend, no API, no auth, and no database. The template's standard stack-selection decisions (DB / ORM / API surface / auth / observability / job orchestration / hosting platform) are **vacated by the architecture** chosen in ADR-0000 and intentionally not filled in.
 
-These are NOT decisions yet. They're strawmen for the new-session Claude + human to challenge or accept.
+The decisions that *do* apply to a Figma plugin are either resolved or N/A:
 
----
+| Topic | Status | Where |
+|---|---|---|
+| Macro architecture | Accepted | [ADR-0000](./0000-architecture-overview.md) |
+| Plugin tooling (bundler + UI framework + language) | Accepted | [ADR-0001](./0001-plugin-tooling.md) |
+| Network egress posture | Accepted | [ADR-0002](./0002-network-access-none.md) |
+| Token parser interface | Accepted | [ADR-0003](./0003-token-parser-interface.md) |
+| Monorepo tool | Resolved | pnpm workspaces — already scaffolded; no separate ADR needed |
+| Testing | Resolved | Vitest (root config) + manual Figma dev-import for the plugin runtime |
+| Styling | Resolved | Vanilla CSS following Figma's plugin UI conventions (11px body, Figma palette). No CSS-in-JS, no Tailwind. Revisit if UI grows. |
+| Hosting / distribution | Deferred to post-V1 | Figma Community vs private install — see `PROJECT.md` open decisions |
+| Observability / error reporting | Deferred to post-V1 | No backend to observe; client-side error reporting requires `networkAccess` change → new ADR |
+| Database / ORM | N/A | No persistent server-side state |
+| API surface | N/A | No server |
+| Auth | N/A | No accounts |
+| Job orchestration | N/A | No background work |
+| Privacy compliance | N/A in V1 | No user data leaves the user's device; ADR-0002 keeps it that way |
 
-## How to work through this queue in Phase 1
-
-1. **Read each entry below with the human.**
-2. **For each: confirm the recommendation, push back, or pick an alternative.** Don't accept silently — make the human articulate why they agree.
-3. **Write the real ADR file** at `docs/decisions/000X-<title-slug>.md` using `_template.md`. Status = "Accepted". Date = today.
-4. **Commit each ADR as its own commit** (`docs(adr): accept ADR-0001 monorepo tool` etc).
-5. **Mark this `QUEUE.md` entry as resolved** by deleting that section and adding a one-liner to `README.md`'s index table.
-
-Once all pending entries are accepted: Phase 1 done, move to Phase 2 (repo bootstrap).
-
----
-
-## Starter list of Phase 1 decisions to make
-
-Add one section per decision below. Suggested decisions for a typical web-app project (skip any that don't apply):
-
-### Monorepo tool
-
-**Strawman:** plain pnpm workspaces (turbo or nx if build caching becomes a bottleneck).
-
-**Alternatives + why not:**
-- **turbo** — adds build caching across packages, but extra config + concept overhead.
-- **nx** — heavy / opinionated; valuable for large teams, overkill for solo.
-- **Yarn workspaces** — fine but pnpm is faster + stricter about phantom deps.
-
-**Would change our mind:** more than ~5 packages with shared build steps that take >30s each.
-
----
-
-### Frontend framework
-
-`<fill in with the decision shape: strawman, alternatives, change-our-mind signals>`
-
----
-
-### API surface
-
-`<...>`
-
----
-
-### Auth provider
-
-`<...>`
-
----
-
-### Database
-
-`<...>`
-
----
-
-### ORM
-
-`<...>`
-
----
-
-### Job orchestration
-
-`<...>`
-
----
-
-### Observability stack
-
-`<...>`
-
----
-
-### Hosting platform
-
-`<...>`
-
----
-
-### Styling approach
-
-`<...>`
-
----
-
-### Component library
-
-`<...>`
-
----
-
-### Testing approach
-
-`<...>`
-
----
-
-### Privacy compliance approach
-
-`<...>`
-
----
-
-`<Add project-specific decisions below as needed — payment provider, vector store, ML inference stack, etc.>`
+If a real architectural decision arrives, add a section here with a strawman, then resolve it into a numbered ADR using `_template.md`.

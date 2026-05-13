@@ -8,30 +8,31 @@ Keep this file under 500 lines. Detail goes in `docs/decisions/` (ADRs), per-pac
 
 ## 1. Project identity
 
-> **Replace this section per project.** The format below is from a prior project. Keep the *shape* (service / differentiator / phase / tracker / read-first); replace the content.
-
-- **Service:** `<PROJECT_NAME>` — `<one-sentence description>`.
-- **Differentiator:** `<what makes this defensible / what nobody else does well>`.
-- **Phase:** `<1A / MVP / etc>`. Target: `<TBD or specific date>`; no time pressure; ship when ready.
-- **Tracker:** `<Linear / GitHub Issues / etc>` — `<workspace / team / project>`.
-- **Read first:** `PROJECT.md` (product scope), `docs/decisions/0000-architecture-overview.md` (system shape).
+- **Service:** **TokenCheck** — a Figma plugin that lints designs against an external MUI theme JSON (or any flat-token JSON) coming from the engineering codebase. Engineering tokens are the source of truth; any Figma value that doesn't match a token is flagged.
+- **Differentiator:** code-as-source-of-truth direction (engineering theme → Figma check), with MUI-aware normalisation (rem→px, spacing-base multiples, palette nesting). Most existing plugins go the other way (Figma → code) and lose source of truth the moment a designer skips the "rebuild the theme in Figma" step. See `PROJECT.md` "Defensible moats".
+- **Phase:** V1 (MVP). Target: TBD; no time pressure; ship when ready. Small project — V1 / V2 buckets only, no formal phase ladder. See `docs/ROADMAP.md` for sequenced milestones.
+- **Tracker:** TBD (likely GitHub Issues on this repo until volume justifies Linear). Until set, treat the IN-scope list in `PROJECT.md` as the de-facto backlog.
+- **Read first:** `SPEC.md` (full technical spec — single source of truth for V1 behaviour), `PROJECT.md` (product scope + cut-line), `docs/decisions/0000-architecture-overview.md` (system shape).
 
 ### Repo structure
 
-`<Describe the actual layout. Example below — adapt to your stack.>`
-
 ```
 apps/
-  web/        ← `<framework, e.g. Next.js>` — also hosts the API (per ADR-XXXX)
+  plugin/     ← the Figma plugin (one manifest → one webpack bundle)
+                src/plugin/   sandbox-side controller (figma.* consumer)
+                src/app/      UI iframe (React)
 packages/
-  shared/     ← cross-platform code (hooks, utils, types, schemas)
-  ui/         ← React components for web
+  shared/     ← pure TS: token parser, lint engine, colour distance, types.
+                No figma.*, no DOM, no Node-specifics. Tested with Vitest in plain Node.
 docs/
   decisions/  ← ADRs
+  runbooks/   ← per-vendor incident references (sparse — V1 has no vendors)
 scripts/      ← project-level scripts (gates, hooks)
 .claude/
-  commands/   ← Claude Code slash commands
+  commands/   ← Claude Code slash commands (e.g. /pre-pr)
 ```
+
+> **Note:** the scaffold currently ships `apps/web/` as a placeholder. There is no web app — that directory is queued for rename to `apps/plugin/` as part of Phase 2 bootstrap. Until renamed, treat references to `apps/plugin/` in this file as forward-looking.
 
 Each `apps/*` and `packages/*` has its own `CLAUDE.md` for package-specific rules. Root `CLAUDE.md` (this file) holds global rules.
 
@@ -41,13 +42,14 @@ Each `apps/*` and `packages/*` has its own `CLAUDE.md` for package-specific rule
 
 Things that MUST be true. Violations get reverted, not patched.
 
-> **Customise this list per project.** The examples below are common patterns; keep, drop, or add as the project demands.
-
-- **Cross-package import direction.** `apps/web` imports from `packages/{shared,ui,...}`. No app imports from another app. (Add your specific direction rules — e.g. mobile imports from `packages/mobile-ui` not `packages/ui`.)
-- **`packages/shared` is platform-agnostic.** No DOM APIs, no React Native APIs, no Node-specific APIs unless wrapped behind a platform-detection layer. If you need a platform-specific implementation, expose an interface from `shared` and implement it per-platform in the consuming app.
-- **Datetimes in API responses are ISO-8601 UTC with `Z` suffix.** Local-time conversion happens in the client, never in the server.
-- **All user-data deletion is real.** "Soft delete" with a `deleted_at` flag is OK for audit trail BUT the `/account/delete` endpoint MUST genuinely remove personal data within 30 days (GDPR requirement, when applicable).
-- *Add project-specific invariants here* — for example: "API surface is internally tRPC", "the recommendation engine is a pure module with no DB awareness", "JSON column shapes are versioned".
+- **Cross-package import direction.** `apps/plugin` imports from `packages/shared`. No app imports from another app. `packages/shared` imports from nothing inside this repo.
+- **`packages/shared` is platform-agnostic.** No `figma.*`, no DOM APIs (`document`, `window`, `localStorage`), no React, no Node-specific APIs unless wrapped behind a platform-detection layer. The lint engine and token parser MUST be testable in plain Node with Vitest — no jsdom, no Figma mock harness. This is the moat boundary (per ADR-0000).
+- **The plugin sandbox does not touch the DOM.** Code under `apps/plugin/src/plugin/` runs in Figma's plugin VM, which has no `document` / `window`. Anything DOM-related belongs in `apps/plugin/src/app/` (the UI iframe) and communicates back via `postMessage`.
+- **The UI iframe does not touch `figma.*`.** Code under `apps/plugin/src/app/` has no access to the Figma API. Anything that needs to read or mutate the scene graph happens in the sandbox and is mediated by typed `postMessage` payloads.
+- **`networkAccess` stays `["none"]` until an ADR says otherwise.** V1 makes zero outbound requests. Any change to `manifest.json`'s `networkAccess` is a stop-and-ask (§4), a new ADR, and a privacy review — it's new external egress.
+- **Token JSON is pasted/uploaded locally.** The plugin does NOT parse TypeScript and does NOT call `eval` / `Function` / dynamic `import()` on user input. The contract per SPEC.md is: user provides JSON; we parse JSON.
+- **Persisted user state lives in `figma.clientStorage` only.** No cookies, no localStorage, no remote stores in V1. Anything beyond `clientStorage` is a new ingress / egress decision (§4).
+- **The lint engine is a pure function of (Figma-extracted values, parsed tokens).** No global state, no side effects, no I/O. This is what makes the moat testable and what would let a future CI surface reuse the engine without a Figma runtime.
 
 ---
 
